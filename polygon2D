@@ -1,0 +1,194 @@
+ #include<GL/glut.h>
+ #include<stdio.h>
+ #include <math.h>
+ int x[]={0,4,4,0};
+ int y[]={0,0,4,4};
+ int A[]={0,4,4,0};
+ int B[]={0,0,4,4};
+ void drawCentrePoint()
+ {
+ glLoadIdentity();
+ glColor3ub(0,0,0);
+ glPointSize(5.0);
+ glBegin(GL_POINTS);
+ glVertex2i(0,0);
+ glEnd();
+ glPointSize(1.0);
+ }
+ void drawAxes()
+ {
+ glColor3ub(200,200,200);
+ for(int i=-10;i<=10;i++)
+ {
+ glBegin(GL_LINES);
+ glVertex2d(-10,i);
+ glVertex2d(10,i);
+ glVertex2d(i,-10);
+ glVertex2d(i,10);
+ glEnd();
+ }
+ glColor3ub(50,50,50);
+glBegin(GL_LINES);
+ glVertex2d(-10,0);
+ glVertex2d(10,0);
+ glVertex2d(0,-10);
+ glVertex2d(0,10);
+ glEnd();
+ }
+ void drawpolygon(int x[], int y[])
+ {
+ glLoadIdentity();
+ glColor3ub(0,0,200);
+ glBegin(GL_POLYGON);
+ for(int i=0;i<4;i++)
+ glVertex2f(x[i],y[i]);
+ glEnd();
+ }
+ void drawModelRed()
+ {
+ glLoadIdentity();
+ glColor3ub(200,0,0);
+ glBegin(GL_POLYGON);
+ for(int i=0;i<4;i++)
+ glVertex2f(A[i],B[i]);
+ glEnd();
+ }
+ void drawModelBlue()
+ {
+ glLoadIdentity();
+ glColor3ub(0,0,200);
+ glBegin(GL_POLYGON);
+ for(int i=0;i<4;i++)
+ glVertex2f(x[i],y[i]);
+ glEnd();
+ }
+ void translate()
+ {
+ printf("Enter translation values (tx ty): ");
+ float tx, ty;
+ scanf("%f %f", &tx, &ty);
+ for (int i = 0; i<4; i++) {
+ x[i] += tx;
+ y[i]+= ty;
+ }
+drawpolygon(x,y);
+ }
+ void scale()
+ {
+ printf("Enter scaling factors (sx sy): ");
+ float sx, sy;
+ scanf("%f %f", &sx, &sy);
+ for (int i = 0; i<4; i++) {
+ x[i]*=-sx;
+ y[i]*= sy;
+ }
+ drawpolygon(x,y);
+ }
+ void rotate()
+ {
+ printf("Enter rotation angle (degrees): ");
+ float angle;
+ scanf("%f", &angle);
+ float radian = angle * 3.14159265359 / 180;
+ float cosA = cos(radian);
+ float sinA = sin(radian);
+ float centerX = (x[0] + x[2]) / 2.0;
+ float centerY = (y[0] + y[2]) / 2.0;
+ for (int i = 0; i < 4; i++) {
+ x[i] -= centerX;
+ y[i] -= centerY;
+ float newX = x[i] * cosA - y[i] * sinA;
+ float newY = x[i] * sinA + y[i] * cosA;
+ x[i] = newX + centerX;
+ y[i] = newY + centerY;
+ }
+ drawpolygon(x, y);
+ }
+ void reflect_x()
+ {
+ for (int i = 0; i < 4; i++) {
+ x[i]= -x[i];
+ }
+ drawpolygon(x,y);
+ }
+void reflect_y()
+ {
+ for (int i = 0; i < 4; i++) {
+ y[i]= -y[i];
+ }
+ drawpolygon(x,y);
+ }
+ void shear()
+ {
+ float shx, shy;
+ printf("Enter shear factors (shx shy): ");
+ scanf("%f %f", &shx, &shy);
+ for (int i = 0; i <4; i++) {
+ float a =x[i];
+ float b =y[i];
+ x[i]= a + shx * b;
+ y[i]= b + shy * a;
+ }
+ drawpolygon(x,y);
+ }
+ void drawModel()
+ {
+ glClear(GL_COLOR_BUFFER_BIT);
+ glMatrixMode(GL_MODELVIEW);
+ drawAxes();
+ drawModelRed();
+ drawModelBlue();
+ drawCentrePoint();
+ glFlush();
+ }
+ void init()
+ {
+ glClearColor(1,1,1,1);
+ glMatrixMode(GL_PROJECTION);
+ gluOrtho2D(-10,10,-10,10);
+ }
+ int main(int argc,char* argv[])
+ {
+ int choice;
+ printf("Menu:\n");
+printf("1. Translate\n");
+ printf("2. Scale\n");
+ printf("3. Rotate\n");
+ printf("4. Reflect (in x axis)\n");
+ printf("5. Reflect (in y axis)\n");
+ printf("6. Shear\n");
+ printf("Enter your choice: ");
+ scanf("%d", &choice);
+ switch (choice) {
+ case 1: // Translate
+ translate();
+ break;
+ case 2: // Scale
+ scale();
+ break;
+ case 3: // Rotate
+ rotate();
+ break;
+ case 4: // Reflect in x
+ reflect_x();
+ break;
+ case 5: // Reflect in y
+ reflect_y();
+ break;
+ case 6: // Shear
+ shear();
+ break;
+ default:
+ printf("Invalid choice. Try again.\n");
+ break;
+ }
+ glutInit(&argc,argv);
+ glutInitDisplayMode(GLUT_SINGLE|GLUT_RGB);
+ glutInitWindowPosition(1000,400);
+ glutInitWindowSize(1000,1000);
+ glutCreateWindow("2d Transformation");
+ init();
+ glutDisplayFunc(drawModel);
+ glutMainLoop();
+ return 0;
+ }
